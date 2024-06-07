@@ -12,14 +12,20 @@ Para ampliar a eficácia do monitoramento, criamos o site Planeta Azul, onde tod
 
 ### Execução do Programa:
 Certifique-se de ter o Python instalado em sua máquina.
+
 Execute o script Python fornecido para iniciar a interface gráfica (GUI).
 
 ### Interface Gráfica:
 pH: Insira o valor do pH da água.
+
 Turbidez: Insira o valor da turbidez da água.
+
 Poluição: Insira o nível de poluição (0 a 10).
+
 Área: Insira a área onde a medição foi feita.
+
 Data: Insira a data da medição no formato dd/mm/aaaa.
+
 Clique no botão "Registrar Dados" para salvar os dados e enviar para o serviço web.
 
 ### Resultados:
@@ -27,8 +33,11 @@ A mensagem de resultado será exibida na parte inferior da interface, indicando 
 
 ## Requisitos:
 Python 3.x
+
 Biblioteca tkinter (inclusa no Python padrão)
+
 Biblioteca requests (instalar via pip install requests)
+
 Biblioteca csv (inclusa no Python padrão)
 
 ## Dependências:
@@ -36,6 +45,7 @@ requests: Utilizada para enviar os dados para um serviço web.
 
 ## Estrutura do Projeto:
 Código Principal: Script Python que implementa a interface gráfica e a lógica de registro de dados.
+
 Arquivo CSV: dados_oceanos.csv para armazenar localmente os dados coletados.
 
 
