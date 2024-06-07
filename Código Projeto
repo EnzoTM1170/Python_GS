@@ -1,0 +1,149 @@
+import tkinter as tk
+from tkinter import ttk
+from tkinter.messagebox import showerror
+import requests
+import csv
+
+# Dicionário para armazenar os dados de monitoramento dos oceanos
+info_oceano = {
+    "pH": [],
+    "turbidez": [],
+    "poluicao": [],
+    "area": [],
+    "data": []
+}
+
+# Função para adicionar dados ao dicionário
+def adicionar_dados(pH, turbidez, poluicao, area, data):
+    info_oceano["pH"].append(pH)
+    info_oceano["turbidez"].append(turbidez)
+    info_oceano["poluicao"].append(poluicao)
+    info_oceano["area"].append(area)
+    info_oceano["data"].append(data)
+
+# Função para salvar os dados em um arquivo CSV
+def salvar_dados():
+    try:
+        with open('dados_oceanos.csv', 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            # Escrever o cabeçalho do CSV
+            writer.writerow(['pH', 'turbidez', 'poluicao', 'area', 'data'])
+            # Escrever os dados linha por linha
+            for i in range(len(info_oceano["pH"])):
+                writer.writerow([info_oceano["pH"][i], info_oceano["turbidez"][i], info_oceano["poluicao"][i], info_oceano["area"][i], info_oceano["data"][i]])
+        print("Dados salvos com sucesso!")
+    except Exception as e:
+        print(f"Erro ao salvar dados: {e}")
+
+# Função para carregar dados de um arquivo CSV
+def carregar_dados():
+    try:
+        with open('dados_oceanos.csv', 'r') as csvfile:
+            reader = csv.reader(csvfile)
+            next(reader)  # Pular o cabeçalho
+            for row in reader:
+                adicionar_dados(row[0], row[1], row[2], row[3], row[4])
+        print("Dados carregados com sucesso!")
+    except FileNotFoundError:
+        print("Arquivo não encontrado. Nenhum dado foi carregado.")
+    except Exception as e:
+        print(f"Erro ao carregar dados: {e}")
+
+# Função para registrar dados de entrada e enviar para um serviço web
+def registrar_dados():
+    try:
+        # Obter os valores de entrada e convertê-los para os tipos apropriados
+        pH = float(pH_entry.get())
+        turbidez = float(turbidez_entry.get())
+        poluicao = float(poluicao_entry.get())
+        area = area_entry.get().strip()
+        datas = data_entry.get().strip()
+
+        # Validar que os campos obrigatórios não estão vazios
+        if not area or not datas:
+            raise ValueError("Área e data não podem ser vazias.")
+
+        # Adicionar os dados ao dicionário e salvar no arquivo CSV
+        adicionar_dados(pH, turbidez, poluicao, area, datas)
+        salvar_dados()
+
+        # Preparar os dados para enviar via requisição POST
+        data = {
+            "ph": pH,
+            "turbidez": turbidez,
+            "poluicao": poluicao,
+            "area": area,
+            "data": datas
+        }
+        print(data)
+
+        # URL do Web App do Google Apps Script
+        url = "https://script.google.com/macros/s/AKfycbz9nBVhwX2hKaWHgX3-oygQYFcdXaSC5ahGUPT_MUfc90YU3eYwjA1-UuxtnYL4lsOgAw/exec"
+
+        # Enviar a requisição POST
+        resposta = requests.post(url, json=data)
+        resposta.raise_for_status()  # Levantar exceção se houver erro na requisição
+
+        resultado = "Dados registrados com sucesso!"
+    except ValueError as ve:
+        resultado = f"Erro de validação: {ve}"
+    except requests.exceptions.RequestException as e:
+        resultado = f"Erro ao registrar dados: {e}"
+    except Exception as e:
+        resultado = f"Erro inesperado: {e}"
+
+    # Atualizar a label de resultado com a mensagem apropriada
+    resultado_label.config(text=resultado)
+    limpar_campos()
+
+# Função para limpar os campos de entrada
+def limpar_campos():
+    pH_entry.delete(0, tk.END)
+    turbidez_entry.delete(0, tk.END)
+    poluicao_entry.delete(0, tk.END)
+    area_entry.delete(0, tk.END)
+    data_entry.delete(0, tk.END)
+
+# Configuração da interface gráfica usando Tkinter
+root = tk.Tk()
+root.title("Registro dos dados")
+
+# Labels e campos de entrada para os dados
+pH_label = ttk.Label(root, text="pH:")
+pH_label.grid(row=0, column=0, sticky="e", padx=3, pady=3)
+pH_entry = ttk.Entry(root)
+pH_entry.grid(row=0, column=1, sticky="w")
+
+turbidez_label = ttk.Label(root, text="Turbidez:")
+turbidez_label.grid(row=1, column=0, sticky="e", padx=3, pady=3)
+turbidez_entry = ttk.Entry(root)
+turbidez_entry.grid(row=1, column=1, sticky="w")
+
+poluicao_label = ttk.Label(root, text="Poluição:")
+poluicao_label.grid(row=2, column=0, sticky="e", padx=3, pady=3)
+poluicao_entry = ttk.Entry(root)
+poluicao_entry.grid(row=2, column=1, sticky="w")
+
+area_label = ttk.Label(root, text="Área:")
+area_label.grid(row=3, column=0, sticky="e", padx=3, pady=3)
+area_entry = ttk.Entry(root)
+area_entry.grid(row=3, column=1, sticky="w")
+
+data_label = ttk.Label(root, text="Data (dd/mm/aaaa):")
+data_label.grid(row=4, column=0, sticky="e", padx=3, pady=3)
+data_entry = ttk.Entry(root)
+data_entry.grid(row=4, column=1, sticky="w")
+
+# Botão para registrar os dados
+registrar_button = ttk.Button(root, text="Registrar Dados", command=registrar_dados)
+registrar_button.grid(row=5, columnspan=2, padx=3, pady=3)
+
+# Label para mostrar o resultado do registro
+resultado_label = ttk.Label(root, text="")
+resultado_label.grid(row=6, columnspan=2)
+
+# Carregar dados ao iniciar
+carregar_dados()
+
+# Iniciar o loop principal da interface gráfica
+root.mainloop()
